@@ -224,7 +224,7 @@
         <!-- บานขวา -->
         <div id="curtain-right" class="curtain-panel w-1/2 h-full bg-gradient-to-bl from-blush-100 via-blush-200 to-blush-300 border-l border-white/60 shadow-2xl flex items-center justify-start pl-4">
             <div class="text-left opacity-40 hidden sm:block">
-                <p class="font-serif italic text-blush-700 text-lg">Puen &amp; Mew</p>
+                <p class="font-serif italic text-blush-700 text-lg">Pheun &amp; Mew</p>
             </div>
         </div>
 
@@ -247,11 +247,6 @@
     <a href="#top-section" aria-label="Back to Top" class="fixed bottom-4 right-4 z-40 w-10 h-10 rounded-full bg-blush-500/90 text-white shadow-md flex items-center justify-center hover:bg-blush-600 transition-all">
         <i class="fa-solid fa-arrow-up text-sm"></i>
     </a>
-
-    <!-- Background Romantic Piano Audio -->
-    <audio id="bg-music" loop preload="auto">
-        <source src="https://cdn.pixabay.com/download/audio/2022/02/07/audio_1822015524.mp3?filename=romantic-piano-110221.mp3" type="audio/mpeg">
-    </audio>
 
     <!-- Falling Petals Container -->
     <div id="petals-container"></div>
@@ -371,7 +366,7 @@
                          alt="เจ้าสาว เพื่อน" 
                          class="w-full h-full object-cover rounded-full">
                 </div>
-                <h3 class="font-script text-4xl text-blush-600">Puen</h3>
+                <h3 class="font-script text-4xl text-blush-600">Pheun</h3>
                 <p class="text-[10px] tracking-[0.25em] text-rosegold uppercase mt-0.5">THE BRIDE</p>
                 <p class="text-sm font-semibold text-gray-800 mt-1">นางสาวธนาภรณ์ แสงทอง (เพื่อน)</p>
             </div>
@@ -596,7 +591,7 @@
 
         <!-- Footer -->
         <footer class="py-6 px-6 text-center border-t border-blush-200/50 bg-white/50">
-            <p class="font-script text-3xl text-blush-600">Puen &amp; Mew</p>
+            <p class="font-script text-3xl text-blush-600">Pheun &amp; Mew</p>
             <p class="text-[11px] text-gray-400 mt-1">19 March 2027 • Rak Nam Cafe</p>
         </footer>
 
@@ -606,18 +601,99 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx63b0Kj5u7s30Z2QMbAS9o-n4N944AygADB2C6vrHHLUzElGkja1hCvFuusadXXxpd/exec";
 
-        // 1. เปิดม่านบานคู่ (Curtain Gate) + เล่นเพลง + โปรยกลีบดอกไม้
-        const bgMusic = document.getElementById('bg-music');
-        const musicIcon = document.getElementById('music-icon');
+        // ==================== ROMANTIC PIANO MELODY (Web Audio API - ไม่ติดบล็อกเสียงบนมือถือ) ====================
+        let audioCtx = null;
         let isPlaying = false;
+        let melodyTimer = null;
+        let noteIndex = 0;
 
+        // ทำนองเพลงเปียโนบรรเลงแนว Canon / Romantic Wedding Arpeggio (Hz)
+        const weddingMelody = [
+            523.25, 659.25, 783.99, 659.25, // C major
+            493.88, 587.33, 783.99, 587.33, // G/B
+            440.00, 523.25, 659.25, 523.25, // Am
+            392.00, 493.88, 659.25, 493.88, // Em
+            349.23, 440.00, 523.25, 440.00, // F
+            329.63, 392.00, 523.25, 392.00, // C/E
+            349.23, 440.00, 587.33, 440.00, // Dm
+            392.00, 493.88, 587.33, 659.25  // G7 -> E
+        ];
+
+        function playPianoNote(freq) {
+            if (!audioCtx || !isPlaying) return;
+            const now = audioCtx.currentTime;
+
+            // สร้างเสียงโทนเปียโนนุ่มๆ (Sine + Triangle harmonic)
+            const osc1 = audioCtx.createOscillator();
+            const osc2 = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(freq, now);
+
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(freq * 2, now);
+
+            const harmonicGain = audioCtx.createGain();
+            harmonicGain.gain.setValueAtTime(0.08, now);
+
+            // Envelope เสียงกดคีย์เปียโนนุ่มนวลและค่อยๆ จางหาย
+            gainNode.gain.setValueAtTime(0.001, now);
+            gainNode.gain.linearRampToValueAtTime(0.14, now + 0.04);
+            gainNode.gain.exponentialRampToValueAtTime(0.0008, now + 1.8);
+
+            osc1.connect(gainNode);
+            osc2.connect(harmonicGain);
+            harmonicGain.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 1.85);
+            osc2.stop(now + 1.85);
+        }
+
+        function startPianoMusic() {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            if (isPlaying) return;
+
+            isPlaying = true;
+            document.getElementById('music-icon').className = "fa-solid fa-music text-sm animate-bounce";
+
+            playPianoNote(weddingMelody[noteIndex]);
+            noteIndex = (noteIndex + 1) % weddingMelody.length;
+
+            melodyTimer = setInterval(() => {
+                if (!isPlaying) return;
+                playPianoNote(weddingMelody[noteIndex]);
+                noteIndex = (noteIndex + 1) % weddingMelody.length;
+            }, 650);
+        }
+
+        function stopPianoMusic() {
+            isPlaying = false;
+            clearInterval(melodyTimer);
+            document.getElementById('music-icon').className = "fa-solid fa-volume-xmark text-sm";
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                stopPianoMusic();
+            } else {
+                startPianoMusic();
+            }
+        }
+
+        // 1. เปิดม่านบานคู่ (Curtain Gate) + เล่นเพลง + โปรยกลีบดอกไม้
         function openCurtain() {
             document.getElementById('curtain-overlay').classList.add('opened');
-            bgMusic.volume = 0.4;
-            bgMusic.play().then(() => {
-                isPlaying = true;
-                musicIcon.className = "fa-solid fa-music text-sm animate-bounce";
-            }).catch(() => { isPlaying = false; });
+            startPianoMusic();
             createPetals();
         }
 
@@ -633,17 +709,6 @@
                 hint.innerHTML = '<i class="fa-solid fa-hand-pointer mr-1"></i> แตะที่ซองเพื่อเปิดดูรูปบ่าวสาว';
                 hint.classList.add('animate-bounce');
             }
-        }
-
-        function toggleMusic() {
-            if (isPlaying) {
-                bgMusic.pause();
-                musicIcon.className = "fa-solid fa-volume-xmark text-sm";
-            } else {
-                bgMusic.play();
-                musicIcon.className = "fa-solid fa-music text-sm animate-bounce";
-            }
-            isPlaying = !isPlaying;
         }
 
         // 3. กลีบดอกไม้ชมพูโปรยปราย
