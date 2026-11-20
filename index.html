@@ -11,7 +11,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Prompt:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500;1,600&family=Great+Vibes&family=Prompt:wght@300;400;500;600&family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
     
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
@@ -36,6 +36,7 @@
                     },
                     fontFamily: {
                         serif: ['"Cormorant Garamond"', 'serif'],
+                        script: ['"Great Vibes"', 'cursive'],
                         sans: ['"Prompt"', '"Sarabun"', 'sans-serif'],
                     }
                 }
@@ -45,516 +46,647 @@
 
     <style>
         body {
-            background-color: #FFF8FA;
+            background-color: #FFF5F8;
             color: #4A353B;
             overflow-x: hidden;
         }
 
-        /* Floating Petals Animation */
+        /* 1. SPLIT CURTAIN DOOR (ม่านเปิดซ้าย-ขวาพร้อมตราประทับ) */
+        .curtain-panel {
+            transition: transform 1.2s cubic-bezier(0.77, 0, 0.175, 1);
+        }
+        #curtain-overlay.opened #curtain-left {
+            transform: translateX(-100%);
+        }
+        #curtain-overlay.opened #curtain-right {
+            transform: translateX(100%);
+        }
+        #curtain-overlay.opened #curtain-seal {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(1.3);
+            pointer-events: none;
+        }
+        #curtain-overlay.opened {
+            pointer-events: none;
+        }
+
+        /* Wax Seal Styling (ตราประทับครั่งสีชมพูโรสโกลด์) */
+        .wax-seal {
+            background: radial-gradient(circle at 30% 30%, #F48FB1, #C2185B 70%, #880E4F 100%);
+            box-shadow: 0 6px 15px rgba(136, 14, 79, 0.4), inset 0 2px 4px rgba(255, 255, 255, 0.5);
+            border: 3px solid rgba(255, 228, 236, 0.6);
+        }
+
+        /* 2. 3D INTERACTIVE ENVELOPE (ซองจดหมายเปิดฝา+รูปเลื่อนขึ้น) */
+        .envelope-wrapper {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            margin: 0 auto;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+        .envelope-back {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #FFD6E3 0%, #FFB3CC 100%);
+            border-radius: 12px;
+            box-shadow: 0 15px 35px rgba(232, 93, 136, 0.25);
+        }
+        /* การ์ดรูปถ่ายด้านในซอง */
+        .envelope-card {
+            position: absolute;
+            left: 15px;
+            right: 15px;
+            bottom: 12px;
+            height: 175px;
+            background: white;
+            border-radius: 10px;
+            padding: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s, z-index 0.1s 0.4s;
+            z-index: 2;
+        }
+        .envelope-wrapper.open .envelope-card {
+            transform: translateY(-115px) scale(1.05);
+            z-index: 5;
+        }
+        /* ซองด้านหน้า (ซ้าย-ขวา-ล่าง) */
+        .envelope-front {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            pointer-events: none;
+            overflow: hidden;
+            border-radius: 12px;
+        }
+        .envelope-front::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, transparent 45%, #FFC2D6 46%, #FFA6C4 100%);
+            clip-path: polygon(0 100%, 50% 48%, 100% 100%);
+        }
+        .envelope-front::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 194, 214, 0.85);
+            clip-path: polygon(0 0, 50% 52%, 0 100%);
+        }
+        .envelope-right-flap {
+            position: absolute;
+            inset: 0;
+            z-index: 3;
+            background: rgba(255, 179, 204, 0.9);
+            clip-path: polygon(100% 0, 50% 52%, 100% 100%);
+            border-radius: 12px;
+            pointer-events: none;
+        }
+        /* ฝาปิดซองด้านบน */
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 115px;
+            background: linear-gradient(180deg, #FFB3CC 0%, #FF99BB 100%);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform-origin: top;
+            transition: transform 0.7s ease-in-out, z-index 0.1s 0.35s;
+            z-index: 4;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+        }
+        .envelope-wrapper.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+        /* ตราประทับบนซอง */
+        .envelope-seal-btn {
+            position: absolute;
+            top: 92px;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 6;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+        .envelope-wrapper.open .envelope-seal-btn {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.5);
+            pointer-events: none;
+        }
+
+        /* Watercolour Pink Garden Background */
+        .garden-bg {
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(255, 214, 227, 0.65) 0%, transparent 45%),
+                radial-gradient(circle at 85% 25%, rgba(255, 239, 244, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 20% 75%, rgba(255, 194, 214, 0.45) 0%, transparent 45%),
+                radial-gradient(circle at 80% 85%, rgba(255, 228, 236, 0.7) 0%, transparent 50%),
+                linear-gradient(180deg, #FFF5F8 0%, #FFFDF9 50%, #FFEFF4 100%);
+        }
+
+        /* Soft Frosted Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 179, 204, 0.5);
+            box-shadow: 0 12px 32px -4px rgba(232, 93, 136, 0.12);
+        }
+
+        /* Falling Petals */
         .petal {
             position: fixed;
             top: -10%;
-            z-index: 40;
+            z-index: 35;
             pointer-events: none;
             animation: fall linear infinite;
             opacity: 0.75;
         }
-
         @keyframes fall {
-            0% {
-                transform: translateY(0) rotate(0deg) translateX(0);
-                opacity: 0.8;
-            }
-            50% {
-                transform: translateY(50vh) rotate(180deg) translateX(25px);
-            }
-            100% {
-                transform: translateY(110vh) rotate(360deg) translateX(-25px);
-                opacity: 0;
-            }
-        }
-
-        /* Envelope Cover Transition */
-        #envelope-cover {
-            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
-        }
-        #envelope-cover.opened {
-            opacity: 0;
-            transform: translateY(-100%);
-            pointer-events: none;
-        }
-
-        /* Soft Glass Card */
-        .glass-card {
-            background: rgba(255, 255, 255, 0.88);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 179, 204, 0.45);
-            box-shadow: 0 10px 30px -5px rgba(232, 93, 136, 0.1);
-        }
-
-        /* Floral Corner Decoration SVG */
-        .floral-divider {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-        .floral-divider::before,
-        .floral-divider::after {
-            content: "";
-            height: 1px;
-            width: 60px;
-            background: linear-gradient(90deg, transparent, #E85D88, transparent);
+            0% { transform: translateY(0) rotate(0deg) translateX(0); opacity: 0.85; }
+            50% { transform: translateY(50vh) rotate(180deg) translateX(25px); }
+            100% { transform: translateY(110vh) rotate(360deg) translateX(-25px); opacity: 0; }
         }
     </style>
 </head>
 <body class="font-sans antialiased selection:bg-blush-200 selection:text-blush-700">
 
-    <!-- ==================== 1. ENVELOPE COVER (หน้าปกเปิดซองการ์ด) ==================== -->
-    <div id="envelope-cover" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-gradient-to-b from-blush-100 via-blush-50 to-white px-6 text-center">
-        <!-- Decorative Top Floral Icon -->
-        <div class="mb-4 text-blush-400 text-3xl animate-pulse">
-            <i class="fa-solid fa-spa"></i>
-        </div>
-
-        <p class="font-serif italic text-rosegold text-lg tracking-widest uppercase mb-2">The Wedding Invitation</p>
-        
-        <div class="my-6 p-8 rounded-3xl glass-card max-w-sm w-full border-2 border-blush-200 relative overflow-hidden">
-            <!-- Corner Accents -->
-            <div class="absolute -top-6 -left-6 w-20 h-20 bg-blush-200/40 rounded-full blur-md"></div>
-            <div class="absolute -bottom-6 -right-6 w-20 h-20 bg-blush-300/30 rounded-full blur-md"></div>
-
-            <p class="text-xs tracking-[0.2em] text-blush-500 uppercase mb-3">ขอเรียนเชิญร่วมเป็นเกียรติในงานมงคลสมรส</p>
-            
-            <h1 class="font-serif text-4xl sm:text-5xl font-bold text-blush-700 my-2">
-                Puen <span class="text-blush-400 font-normal">&amp;</span> Mew
-            </h1>
-            <p class="text-lg font-medium text-blush-600 mb-4">เพื่อน &amp; มิว</p>
-
-            <div class="floral-divider my-4 text-blush-400 text-sm">
-                <i class="fa-solid fa-heart"></i>
+    <!-- ==================== STEP 1: SPLIT CURTAIN GATE (ม่านบานคู่เปิดออกซ้าย-ขวา) ==================== -->
+    <div id="curtain-overlay" class="fixed inset-0 z-50 flex overflow-hidden">
+        <!-- บานซ้าย -->
+        <div id="curtain-left" class="curtain-panel w-1/2 h-full bg-gradient-to-br from-blush-100 via-blush-200 to-blush-300 border-r border-white/60 shadow-2xl flex items-center justify-end pr-4">
+            <div class="text-right opacity-40 hidden sm:block">
+                <p class="font-serif italic text-blush-700 text-lg">The Wedding of</p>
             </div>
-
-            <p class="text-sm text-gray-600 font-medium">วันศุกร์ที่ 19 มีนาคม 2570</p>
-            <p class="text-xs text-gray-500 mt-1">ณ รักษ์น้ำคาเฟ่ อ.สามพราน จ.นครปฐม</p>
-
-            <button onclick="openInvitation()" class="mt-8 w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-blush-500 to-rosegold text-white font-medium shadow-lg shadow-blush-300/50 hover:shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
-                <i class="fa-regular fa-envelope-open"></i>
-                <span>เปิดการ์ดเชิญ</span>
-            </button>
+        </div>
+        <!-- บานขวา -->
+        <div id="curtain-right" class="curtain-panel w-1/2 h-full bg-gradient-to-bl from-blush-100 via-blush-200 to-blush-300 border-l border-white/60 shadow-2xl flex items-center justify-start pl-4">
+            <div class="text-left opacity-40 hidden sm:block">
+                <p class="font-serif italic text-blush-700 text-lg">Puen &amp; Mew</p>
+            </div>
         </div>
 
-        <p class="text-xs text-blush-400 mt-4">แตะปุ่มด้านบนเพื่อเปิดการ์ดพร้อมเสียงเพลงบรรเลง</p>
+        <!-- ตราประทับตรงกลางให้กดเปิดม่าน -->
+        <button id="curtain-seal" onclick="openCurtain()" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 flex flex-col items-center group cursor-pointer focus:outline-none">
+            <div class="w-24 h-24 rounded-full wax-seal flex items-center justify-center text-cream font-serif text-3xl font-bold tracking-wider group-hover:scale-110 transition-transform duration-300 animate-pulse">
+                PM
+            </div>
+            <span class="mt-4 px-5 py-1.5 rounded-full bg-white/90 text-blush-700 text-xs font-medium shadow-md border border-blush-200 group-hover:bg-blush-500 group-hover:text-white transition-colors">
+                แตะตราประทับเพื่อเปิดการ์ด
+            </span>
+        </button>
     </div>
 
-    <!-- ==================== FLOATING MUSIC BUTTON ==================== -->
-    <button id="music-toggle" onclick="toggleMusic()" aria-label="Toggle Music" class="fixed bottom-5 right-5 z-40 w-12 h-12 rounded-full bg-white/90 border border-blush-300 text-blush-600 shadow-lg flex items-center justify-center hover:bg-blush-50 transition-all cursor-pointer">
-        <i id="music-icon" class="fa-solid fa-volume-xmark text-lg"></i>
+    <!-- ==================== FLOATING CONTROLS (ปุ่มเพลง + เลื่อนขึ้นบน) ==================== -->
+    <button id="music-toggle" onclick="toggleMusic()" aria-label="Toggle Music" class="fixed top-4 right-4 z-40 w-10 h-10 rounded-full bg-white/90 border border-blush-300 text-blush-600 shadow-md flex items-center justify-center hover:bg-blush-50 transition-all cursor-pointer">
+        <i id="music-icon" class="fa-solid fa-volume-xmark text-sm"></i>
     </button>
 
-    <!-- Background Romantic Piano Audio (Free Royalty-Free Piano Track) -->
+    <a href="#top-section" aria-label="Back to Top" class="fixed bottom-4 right-4 z-40 w-10 h-10 rounded-full bg-blush-500/90 text-white shadow-md flex items-center justify-center hover:bg-blush-600 transition-all">
+        <i class="fa-solid fa-arrow-up text-sm"></i>
+    </a>
+
+    <!-- Background Romantic Piano Audio -->
     <audio id="bg-music" loop preload="auto">
         <source src="https://cdn.pixabay.com/download/audio/2022/02/07/audio_1822015524.mp3?filename=romantic-piano-110221.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Container for Falling Petals -->
+    <!-- Falling Petals Container -->
     <div id="petals-container"></div>
 
-    <!-- ==================== MAIN INVITATION CONTENT ==================== -->
-    <main class="max-w-lg mx-auto bg-white shadow-2xl shadow-blush-200/60 min-h-screen relative overflow-hidden">
-        
-        <!-- 2. HERO SECTION (ภาพปกและชื่อบ่าวสาว) -->
-        <section class="relative pt-14 pb-12 px-6 text-center bg-gradient-to-b from-blush-100/80 via-blush-50/50 to-white">
-            <p class="font-serif italic text-rosegold tracking-[0.25em] text-sm uppercase mb-2">Save The Date</p>
-            <h2 class="font-serif text-4xl sm:text-5xl font-bold text-blush-700 tracking-wide">
-                Puen &amp; Mew
-            </h2>
+    <!-- ==================== MAIN INVITATION CONTAINER ==================== -->
+    <main id="top-section" class="max-w-md mx-auto garden-bg shadow-2xl shadow-blush-200/80 min-h-screen relative overflow-hidden">
+
+        <!-- ==================== STEP 2: HERO & 3D ENVELOPE (ซองจดหมายเปิดฝา + รูปเด้งขึ้น) ==================== -->
+        <section class="pt-14 pb-10 px-6 text-center relative">
+            <p class="text-[11px] tracking-[0.3em] text-rosegold uppercase font-medium">Wedding Day</p>
             
-            <!-- Hero Photo Frame (เปลี่ยนลิงก์รูปภาพพรีเวดดิ้งตรง src ได้เลย) -->
-            <div class="relative mx-auto my-7 w-64 h-80 sm:w-72 sm:h-96 rounded-t-full rounded-b-3xl p-2 bg-gradient-to-b from-blush-300 via-blush-200 to-white shadow-xl">
-                <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=800&q=80" 
-                     alt="เพื่อน และ มิว" 
-                     class="w-full h-full object-cover rounded-t-full rounded-b-2xl">
-                <div class="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-white px-5 py-1.5 rounded-full border border-blush-200 shadow-sm whitespace-nowrap">
-                    <span class="text-xs font-medium text-blush-600 tracking-wider">19 . 03 . 2027</span>
+            <!-- Monogram Logo PM -->
+            <div class="my-2">
+                <span class="font-serif italic text-6xl font-bold text-blush-700 tracking-tighter drop-shadow-sm">PM</span>
+            </div>
+            <p class="text-xs tracking-[0.25em] text-blush-600 font-medium mb-10">19 . 03 . 2027</p>
+
+            <!-- 3D Interactive Envelope -->
+            <div class="pt-12 pb-4">
+                <div id="wedding-envelope" class="envelope-wrapper" onclick="toggleEnvelope()">
+                    <div class="envelope-back"></div>
+                    
+                    <!-- การ์ดรูปถ่ายที่จะเลื่อนเด้งขึ้นมาเมื่อกดเปิดซอง -->
+                    <div class="envelope-card">
+                        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=600&q=80" 
+                             alt="เพื่อน & มิว" 
+                             class="w-full h-full object-cover rounded-md">
+                    </div>
+
+                    <div class="envelope-front"></div>
+                    <div class="envelope-right-flap"></div>
+                    <div class="envelope-flap"></div>
+
+                    <!-- ตราประทับบนซอง -->
+                    <div class="envelope-seal-btn w-12 h-12 rounded-full wax-seal flex items-center justify-center text-white font-serif text-sm font-bold">
+                        PM
+                    </div>
                 </div>
             </div>
 
-            <!-- Formal Names -->
-            <div class="mt-8 space-y-2">
-                <p class="text-xs text-gray-500 tracking-widest uppercase">มีความยินดีขอเรียนเชิญร่วมงานมงคลสมรสระหว่าง</p>
-                
-                <div class="pt-3">
-                    <h3 class="text-xl sm:text-2xl font-semibold text-blush-700">นางสาวธนาภรณ์ แสงทอง</h3>
-                    <p class="text-sm text-rosegold font-medium">(เพื่อน)</p>
-                </div>
+            <p id="envelope-hint" class="text-xs text-blush-600 font-medium mt-3 animate-bounce">
+                <i class="fa-solid fa-hand-pointer mr-1"></i> แตะที่ซองเพื่อเปิดดูรูปบ่าวสาว
+            </p>
 
-                <div class="font-serif italic text-2xl text-blush-400 my-1">&amp;</div>
-
-                <div>
-                    <h3 class="text-xl sm:text-2xl font-semibold text-blush-700">นายชาญวิทย์ จุลรอด</h3>
-                    <p class="text-sm text-rosegold font-medium">(มิว)</p>
-                </div>
-            </div>
-
-            <div class="floral-divider my-7 text-blush-400">
-                <i class="fa-solid fa-spa"></i>
-            </div>
-
-            <!-- Date & Venue Highlight -->
-            <div class="glass-card rounded-2xl p-5 mx-2">
-                <p class="text-base font-semibold text-blush-700">วันศุกร์ที่ 19 มีนาคม พ.ศ. 2570</p>
-                <p class="text-sm text-gray-600 mt-1">ณ รักษ์น้ำคาเฟ่ (Rak Nam Cafe)</p>
-                <p class="text-xs text-gray-500">อำเภอสามพราน จังหวัดนครปฐม</p>
-            </div>
-        </section>
-
-        <!-- 3. COUNTDOWN TIMER (นับถอยหลังสู่วันงาน) -->
-        <section class="py-8 px-6 bg-blush-50/70 border-y border-blush-100 text-center">
-            <p class="font-serif italic text-rosegold text-lg mb-1">Counting Down To Our Special Day</p>
-            <p class="text-xs text-gray-500 mb-5">นับถอยหลังสู่วันสำคัญของเรา</p>
-
-            <div class="grid grid-cols-4 gap-2.5 max-w-sm mx-auto">
-                <div class="bg-white rounded-2xl p-3 border border-blush-200 shadow-sm">
-                    <span id="days" class="block font-serif text-2xl sm:text-3xl font-bold text-blush-600">00</span>
-                    <span class="text-[11px] text-gray-500">วัน</span>
-                </div>
-                <div class="bg-white rounded-2xl p-3 border border-blush-200 shadow-sm">
-                    <span id="hours" class="block font-serif text-2xl sm:text-3xl font-bold text-blush-600">00</span>
-                    <span class="text-[11px] text-gray-500">ชั่วโมง</span>
-                </div>
-                <div class="bg-white rounded-2xl p-3 border border-blush-200 shadow-sm">
-                    <span id="minutes" class="block font-serif text-2xl sm:text-3xl font-bold text-blush-600">00</span>
-                    <span class="text-[11px] text-gray-500">นาที</span>
-                </div>
-                <div class="bg-white rounded-2xl p-3 border border-blush-200 shadow-sm">
-                    <span id="seconds" class="block font-serif text-2xl sm:text-3xl font-bold text-blush-600">00</span>
-                    <span class="text-[11px] text-gray-500">วินาที</span>
-                </div>
+            <div class="mt-8 text-blush-400 text-xs flex flex-col items-center gap-1 opacity-80">
+                <span>เลื่อนลงเพื่อดูรายละเอียด</span>
+                <i class="fa-solid fa-chevron-down animate-bounce"></i>
             </div>
         </section>
 
-        <!-- 4. SCHEDULE & DRESS CODE (กำหนดการและธีมสีชุด) -->
+        <!-- ==================== STEP 3: CALENDAR & COUNTDOWN (ปฏิทินมีนาคม 2570 + นับถอยหลัง) ==================== -->
+        <section class="py-10 px-6 text-center">
+            <p class="text-[10px] tracking-[0.3em] text-rosegold uppercase">Save The Date</p>
+            <h2 class="font-script text-4xl text-blush-600 my-1">Countdown</h2>
+            <p class="text-xs text-gray-500 mb-6">ขอเชิญทุกท่านมาร่วมเฉลิมฉลองความรักของเรา</p>
+
+            <!-- Calendar Card (March 2027 / มีนาคม 2570) -->
+            <div class="glass-card rounded-3xl p-6 max-w-xs mx-auto">
+                <p class="font-serif tracking-[0.2em] text-blush-600 font-bold text-lg uppercase">FRIDAY</p>
+                <h3 class="text-lg font-semibold text-gray-800 mt-0.5">19 มีนาคม 2570</h3>
+                <p class="font-serif italic text-xs text-rosegold mb-4">March 19, 2027</p>
+
+                <!-- Mini Calendar Grid (March 2027 starts on Monday) -->
+                <div class="bg-white/90 rounded-2xl p-3.5 border border-blush-100 shadow-inner text-xs">
+                    <div class="grid grid-cols-7 gap-1 font-semibold text-blush-500 pb-2 border-b border-blush-100 text-[10px]">
+                        <span>SUN</span><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><span>SAT</span>
+                    </div>
+                    <div class="grid grid-cols-7 gap-y-2 gap-x-1 pt-2 text-gray-600 font-medium text-[11px] items-center">
+                        <span class="text-gray-300"></span>
+                        <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span>
+                        <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span>
+                        <span>14</span><span>15</span><span>16</span><span>17</span><span>18</span>
+                        <!-- Highlight Date 19 with Pink Heart -->
+                        <span class="relative flex items-center justify-center text-white font-bold">
+                            <i class="fa-solid fa-heart text-blush-500 text-2xl absolute"></i>
+                            <span class="relative z-10 text-[10px]">19</span>
+                        </span>
+                        <span>20</span>
+                        <span>21</span><span>22</span><span>23</span><span>24</span><span>25</span><span>26</span><span>27</span>
+                        <span>28</span><span>29</span><span>30</span><span>31</span>
+                    </div>
+                </div>
+
+                <!-- 4-Box Countdown -->
+                <div class="grid grid-cols-4 gap-2 mt-5">
+                    <div class="bg-blush-50 rounded-xl py-2 px-1 border border-blush-200">
+                        <span id="days" class="block font-serif text-xl font-bold text-blush-700">00</span>
+                        <span class="text-[10px] text-gray-500">วัน</span>
+                    </div>
+                    <div class="bg-blush-50 rounded-xl py-2 px-1 border border-blush-200">
+                        <span id="hours" class="block font-serif text-xl font-bold text-blush-700">00</span>
+                        <span class="text-[10px] text-gray-500">ชั่วโมง</span>
+                    </div>
+                    <div class="bg-blush-50 rounded-xl py-2 px-1 border border-blush-200">
+                        <span id="minutes" class="block font-serif text-xl font-bold text-blush-700">00</span>
+                        <span class="text-[10px] text-gray-500">นาที</span>
+                    </div>
+                    <div class="bg-blush-50 rounded-xl py-2 px-1 border border-blush-200">
+                        <span id="seconds" class="block font-serif text-xl font-bold text-blush-700">00</span>
+                        <span class="text-[10px] text-gray-500">วินาที</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 4: BRIDE & GROOM (แนะนำเจ้าสาว-เจ้าบ่าว กรอบวงรี) ==================== -->
+        <section class="py-10 px-6 text-center">
+            <p class="text-xs text-gray-600 leading-relaxed mb-8">
+                มีความยินดีขอเรียนเชิญท่านเพื่อเป็นเกียรติ<br>
+                และร่วมฉลองพิธีมงคลสมรส ระหว่าง
+            </p>
+
+            <!-- Bride -->
+            <div class="mb-8">
+                <div class="w-40 h-52 mx-auto rounded-full p-1.5 bg-gradient-to-b from-blush-300 to-blush-100 shadow-lg mb-4">
+                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=500&q=80" 
+                         alt="เจ้าสาว เพื่อน" 
+                         class="w-full h-full object-cover rounded-full">
+                </div>
+                <h3 class="font-script text-4xl text-blush-600">Puen</h3>
+                <p class="text-[10px] tracking-[0.25em] text-rosegold uppercase mt-0.5">THE BRIDE</p>
+                <p class="text-sm font-semibold text-gray-800 mt-1">นางสาวธนาภรณ์ แสงทอง (เพื่อน)</p>
+            </div>
+
+            <div class="text-blush-400 text-sm my-3">
+                <i class="fa-solid fa-heart"></i>
+            </div>
+
+            <!-- Groom -->
+            <div class="mt-6">
+                <div class="w-40 h-52 mx-auto rounded-full p-1.5 bg-gradient-to-b from-blush-300 to-blush-100 shadow-lg mb-4">
+                    <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=500&q=80" 
+                         alt="เจ้าบ่าว มิว" 
+                         class="w-full h-full object-cover rounded-full">
+                </div>
+                <h3 class="font-script text-4xl text-blush-600">Mew</h3>
+                <p class="text-[10px] tracking-[0.25em] text-rosegold uppercase mt-0.5">THE GROOM</p>
+                <p class="text-sm font-semibold text-gray-800 mt-1">นายชาญวิทย์ จุลรอด (มิว)</p>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 5: ALTERNATING TIMELINE (กำหนดการสลับซ้าย-ขวา) ==================== -->
         <section class="py-12 px-6">
-            <div class="text-center mb-8">
-                <p class="font-serif italic text-rosegold text-lg">Wedding Schedule</p>
-                <h3 class="text-2xl font-semibold text-blush-700">กำหนดการพิธีมงคลสมรส</h3>
-                <p class="text-xs text-gray-500 mt-1">วันศุกร์ที่ 19 มีนาคม 2570</p>
+            <div class="text-center mb-10">
+                <p class="text-[10px] tracking-[0.3em] text-rosegold uppercase">Wedding Schedule</p>
+                <h3 class="font-script text-4xl text-blush-600 mt-1">Our Timeline</h3>
+                <p class="text-xs text-gray-500">วันศุกร์ที่ 19 มีนาคม 2570</p>
             </div>
 
-            <!-- Timeline Items (แก้ไขเวลาและรายละเอียดพิธีการได้ตรงนี้) -->
-            <div class="relative border-l-2 border-blush-200 ml-6 space-y-7 my-6">
-                
-                <!-- Item 1 -->
-                <div class="relative pl-7">
-                    <div class="absolute -left-[13px] top-1 w-6 h-6 rounded-full bg-blush-100 border-2 border-blush-500 flex items-center justify-center text-blush-600 text-xs">
+            <!-- Center Vertical Line Timeline -->
+            <div class="relative max-w-xs mx-auto">
+                <div class="absolute left-1/2 top-2 bottom-2 w-0.5 bg-blush-200 -translate-x-1/2"></div>
+
+                <!-- Event 1 (Left Text) -->
+                <div class="relative flex items-center justify-between mb-8">
+                    <div class="w-[42%] text-right pr-2">
+                        <p class="text-xs font-bold text-blush-600">07.09 น.</p>
+                        <p class="text-xs font-semibold text-gray-800">พิธีสงฆ์</p>
+                        <p class="font-serif italic text-[11px] text-gray-400">Buddhist Ceremony</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-full bg-white border-2 border-blush-300 shadow-md flex items-center justify-center text-blush-500 z-10">
                         <i class="fa-solid fa-hands-praying"></i>
                     </div>
-                    <span class="inline-block px-3 py-0.5 rounded-full bg-blush-100 text-blush-700 text-xs font-semibold mb-1">07:09 น.</span>
-                    <h4 class="text-base font-semibold text-gray-800">พิธีสงฆ์และทำบุญตักบาตร</h4>
-                    <p class="text-xs text-gray-500">ร่วมทำบุญตักบาตรเพื่อความเป็นสิริมงคลแก่คู่บ่าวสาว</p>
+                    <div class="w-[42%]"></div>
                 </div>
 
-                <!-- Item 2 -->
-                <div class="relative pl-7">
-                    <div class="absolute -left-[13px] top-1 w-6 h-6 rounded-full bg-blush-100 border-2 border-blush-500 flex items-center justify-center text-blush-600 text-xs">
+                <!-- Event 2 (Right Text) -->
+                <div class="relative flex items-center justify-between mb-8">
+                    <div class="w-[42%]"></div>
+                    <div class="w-11 h-11 rounded-full bg-white border-2 border-blush-300 shadow-md flex items-center justify-center text-blush-500 z-10">
                         <i class="fa-solid fa-drum"></i>
                     </div>
-                    <span class="inline-block px-3 py-0.5 rounded-full bg-blush-100 text-blush-700 text-xs font-semibold mb-1">08:29 น.</span>
-                    <h4 class="text-base font-semibold text-gray-800">พิธีแห่ขันหมาก</h4>
-                    <p class="text-xs text-gray-500">ขบวนขันหมากฝ่ายเจ้าบ่าวเคลื่อนสู่บริเวณพิธี</p>
+                    <div class="w-[42%] text-left pl-2">
+                        <p class="text-xs font-bold text-blush-600">08.29 น.</p>
+                        <p class="text-xs font-semibold text-gray-800">พิธีแห่ขันหมาก</p>
+                        <p class="font-serif italic text-[11px] text-gray-400">Khan Maak Procession</p>
+                    </div>
                 </div>
 
-                <!-- Item 3 -->
-                <div class="relative pl-7">
-                    <div class="absolute -left-[13px] top-1 w-6 h-6 rounded-full bg-blush-100 border-2 border-blush-500 flex items-center justify-center text-blush-600 text-xs">
+                <!-- Event 3 (Left Text) -->
+                <div class="relative flex items-center justify-between mb-8">
+                    <div class="w-[42%] text-right pr-2">
+                        <p class="text-xs font-bold text-blush-600">09.09 น.</p>
+                        <p class="text-xs font-semibold text-gray-800">พิธีสวมแหวนหมั้น</p>
+                        <p class="font-serif italic text-[11px] text-gray-400">Engagement Ceremony</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-full bg-white border-2 border-blush-300 shadow-md flex items-center justify-center text-blush-500 z-10">
                         <i class="fa-solid fa-ring"></i>
                     </div>
-                    <span class="inline-block px-3 py-0.5 rounded-full bg-blush-100 text-blush-700 text-xs font-semibold mb-1">09:09 น.</span>
-                    <h4 class="text-base font-semibold text-gray-800">พิธีสู่ขอ มอบสินสอด และสวมแหวนหมั้น</h4>
-                    <p class="text-xs text-gray-500">พิธีหมั้นหมายตามประเพณีไทยและพิธีรับไหว้ผู้ใหญ่</p>
+                    <div class="w-[42%]"></div>
                 </div>
 
-                <!-- Item 4 -->
-                <div class="relative pl-7">
-                    <div class="absolute -left-[13px] top-1 w-6 h-6 rounded-full bg-blush-100 border-2 border-blush-500 flex items-center justify-center text-blush-600 text-xs">
+                <!-- Event 4 (Right Text) -->
+                <div class="relative flex items-center justify-between mb-8">
+                    <div class="w-[42%]"></div>
+                    <div class="w-11 h-11 rounded-full bg-white border-2 border-blush-300 shadow-md flex items-center justify-center text-blush-500 z-10">
                         <i class="fa-solid fa-droplet"></i>
                     </div>
-                    <span class="inline-block px-3 py-0.5 rounded-full bg-blush-100 text-blush-700 text-xs font-semibold mb-1">10:19 น.</span>
-                    <h4 class="text-base font-semibold text-gray-800">พิธีหลั่งน้ำพระพุทธมนต์และประสาทพร</h4>
-                    <p class="text-xs text-gray-500">แขกผู้มีเกียรติร่วมรดน้ำสังข์อวยพรคู่บ่าวสาว</p>
+                    <div class="w-[42%] text-left pl-2">
+                        <p class="text-xs font-bold text-blush-600">10.19 น.</p>
+                        <p class="text-xs font-semibold text-gray-800">พิธีรดน้ำสังข์</p>
+                        <p class="font-serif italic text-[11px] text-gray-400">Water Pouring</p>
+                    </div>
                 </div>
 
-                <!-- Item 5 -->
-                <div class="relative pl-7">
-                    <div class="absolute -left-[13px] top-1 w-6 h-6 rounded-full bg-blush-100 border-2 border-blush-500 flex items-center justify-center text-blush-600 text-xs">
+                <!-- Event 5 (Left Text) -->
+                <div class="relative flex items-center justify-between">
+                    <div class="w-[42%] text-right pr-2">
+                        <p class="text-xs font-bold text-blush-600">11.30 น.</p>
+                        <p class="text-xs font-semibold text-gray-800">ร่วมรับประทานอาหาร</p>
+                        <p class="font-serif italic text-[11px] text-gray-400">Wedding Lunch</p>
+                    </div>
+                    <div class="w-11 h-11 rounded-full bg-blush-500 border-2 border-white shadow-md flex items-center justify-center text-white z-10">
                         <i class="fa-solid fa-utensils"></i>
                     </div>
-                    <span class="inline-block px-3 py-0.5 rounded-full bg-blush-100 text-blush-700 text-xs font-semibold mb-1">11:30 น.</span>
-                    <h4 class="text-base font-semibold text-gray-800">ร่วมรับประทานอาหารกลางวัน (โต๊ะจีน)</h4>
-                    <p class="text-xs text-gray-500">ร่วมรับประทานอาหารและถ่ายภาพเป็นที่ระลึก</p>
-                </div>
-
-            </div>
-
-            <!-- Theme / Dress Code -->
-            <div class="mt-10 glass-card rounded-2xl p-5 text-center">
-                <p class="font-serif italic text-rosegold text-base">Theme &amp; Dress Code</p>
-                <p class="text-sm font-medium text-gray-700 mt-1">โทนสีชมพู / ชมพูพาสเทล / ขาวครีม</p>
-                <div class="flex justify-center items-center gap-3 mt-4">
-                    <div class="flex flex-col items-center gap-1">
-                        <span class="w-9 h-9 rounded-full bg-[#FFE4EC] border border-blush-300 shadow-inner"></span>
-                        <span class="text-[10px] text-gray-500">Pastel Pink</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-1">
-                        <span class="w-9 h-9 rounded-full bg-[#FFB3CC] border border-blush-300 shadow-inner"></span>
-                        <span class="text-[10px] text-gray-500">Blush Pink</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-1">
-                        <span class="w-9 h-9 rounded-full bg-[#E85D88] border border-blush-400 shadow-inner"></span>
-                        <span class="text-[10px] text-gray-500">Rose Pink</span>
-                    </div>
-                    <div class="flex flex-col items-center gap-1">
-                        <span class="w-9 h-9 rounded-full bg-[#FFFDF9] border border-gray-300 shadow-inner"></span>
-                        <span class="text-[10px] text-gray-500">Cream White</span>
-                    </div>
+                    <div class="w-[42%]"></div>
                 </div>
             </div>
         </section>
 
-        <!-- 5. LOCATION & MAP (สถานที่จัดงาน) -->
-        <section class="py-10 px-6 bg-blush-50/70 border-y border-blush-100 text-center">
-            <p class="font-serif italic text-rosegold text-lg">Location</p>
-            <h3 class="text-2xl font-semibold text-blush-700 mb-2">สถานที่จัดงาน</h3>
-            
-            <div class="glass-card rounded-2xl p-6 mt-4">
-                <div class="w-12 h-12 rounded-full bg-blush-100 text-blush-600 flex items-center justify-center mx-auto mb-3 text-xl">
+        <!-- ==================== STEP 6: GALLERY MOMENTS ==================== -->
+        <section class="py-8 px-6">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-2xl overflow-hidden shadow-md aspect-[3/4] border-2 border-white">
+                    <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" alt="Prewedding 1" class="w-full h-full object-cover">
+                </div>
+                <div class="rounded-2xl overflow-hidden shadow-md aspect-[3/4] border-2 border-white mt-4">
+                    <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80" alt="Prewedding 2" class="w-full h-full object-cover">
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== STEP 7: LOCATION & DRESS CODE CARD ==================== -->
+        <section class="py-10 px-6 text-center">
+            <div class="glass-card rounded-3xl p-6 max-w-xs mx-auto">
+                <p class="text-[10px] tracking-[0.25em] text-rosegold uppercase">Location</p>
+                <span class="inline-block mt-1 px-4 py-1 rounded-full bg-blush-500 text-white text-xs font-medium">สถานที่จัดงาน</span>
+
+                <div class="my-4 text-blush-500 text-xl">
                     <i class="fa-solid fa-location-dot"></i>
                 </div>
-                <h4 class="text-lg font-semibold text-gray-800">รักษ์น้ำคาเฟ่ (Rak Nam Cafe)</h4>
+
+                <h4 class="text-base font-bold text-gray-800">รักษ์น้ำคาเฟ่ (Rak Nam Cafe)</h4>
                 <p class="text-xs text-gray-500 mt-1 mb-5">อำเภอสามพราน จังหวัดนครปฐม</p>
 
-                <a href="https://maps.app.goo.gl/ee7kV344C3KH9uaY9" target="_blank" rel="noopener noreferrer" 
-                   class="inline-flex items-center justify-center gap-2 w-full py-3 px-5 rounded-xl bg-blush-600 hover:bg-blush-700 text-white text-sm font-medium shadow-md transition-all">
-                    <i class="fa-solid fa-diamond-turn-right"></i>
-                    <span>เปิดแผนที่นำทาง Google Maps</span>
+                <a href="https://maps.app.goo.gl/ee7kV344C3KH9uaY9" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-full bg-blush-600 hover:bg-blush-700 text-white text-xs font-medium shadow-md transition-all">
+                    <i class="fa-solid fa-map-location-dot"></i>
+                    <span>เปิดพิกัด Google Maps</span>
                 </a>
+
+                <div class="border-t border-blush-100 my-6"></div>
+
+                <!-- Dress Code -->
+                <p class="font-serif tracking-[0.2em] text-gray-800 font-bold text-sm uppercase">DRESS CODE</p>
+                <p class="font-script text-xl text-rosegold mb-4">for our special day</p>
+
+                <div class="flex justify-center items-center gap-3">
+                    <span class="w-9 h-9 rounded-full bg-[#FFE4EC] border-2 border-white shadow-md" title="ชมพูอ่อน"></span>
+                    <span class="w-9 h-9 rounded-full bg-[#FFB3CC] border-2 border-white shadow-md" title="ชมพูพาสเทล"></span>
+                    <span class="w-9 h-9 rounded-full bg-[#E85D88] border-2 border-white shadow-md" title="ชมพูโรส"></span>
+                    <span class="w-9 h-9 rounded-full bg-[#FFFDF9] border-2 border-blush-200 shadow-md" title="ขาวครีม"></span>
+                </div>
+                <p class="text-[11px] text-gray-500 mt-3">ธีมสีชมพู / ชมพูพาสเทล / ขาวครีม</p>
             </div>
         </section>
 
-        <!-- 6. PRE-WEDDING GALLERY (อัลบั้มรูปภาพ) -->
-        <section class="py-12 px-6">
+        <!-- ==================== STEP 8: RSVP FORM (เชื่อมต่อ Google Sheets เดิมของคุณ) ==================== -->
+        <section id="rsvp-section" class="py-10 px-6 pb-16">
             <div class="text-center mb-6">
-                <p class="font-serif italic text-rosegold text-lg">Our Moments</p>
-                <h3 class="text-2xl font-semibold text-blush-700">แกลเลอรีภาพความทรงจำ</h3>
-            </div>
-
-            <!-- สามารถเปลี่ยน src เป็นไฟล์รูปพรีเวดดิ้งของคุณได้ เช่น images/photo1.jpg -->
-            <div class="grid grid-cols-2 gap-3">
-                <div class="overflow-hidden rounded-2xl shadow-sm aspect-[3/4] border border-blush-100">
-                    <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?auto=format&fit=crop&w=600&q=80" alt="Gallery 1" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-                </div>
-                <div class="overflow-hidden rounded-2xl shadow-sm aspect-[3/4] border border-blush-100">
-                    <img src="https://images.unsplash.com/photo-1520854221256-17451cc331bf?auto=format&fit=crop&w=600&q=80" alt="Gallery 2" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-                </div>
-                <div class="overflow-hidden rounded-2xl shadow-sm aspect-[3/4] border border-blush-100">
-                    <img src="https://images.unsplash.com/photo-1522673607200-164d1b6ce486?auto=format&fit=crop&w=600&q=80" alt="Gallery 3" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-                </div>
-                <div class="overflow-hidden rounded-2xl shadow-sm aspect-[3/4] border border-blush-100">
-                    <img src="https://images.unsplash.com/photo-1583939003579-730e3918a45a?auto=format&fit=crop&w=600&q=80" alt="Gallery 4" class="w-full h-full object-cover hover:scale-105 transition-transform duration-500">
-                </div>
-            </div>
-        </section>
-
-        <!-- 7. RSVP FORM (ฟอร์มตอบรับเข้าร่วมงาน เชื่อม Google Sheets) -->
-        <section id="rsvp-section" class="py-12 px-6 bg-gradient-to-b from-blush-50 to-blush-100/70 border-t border-blush-200">
-            <div class="text-center mb-6">
-                <p class="font-serif italic text-rosegold text-lg">R.S.V.P</p>
-                <h3 class="text-2xl font-semibold text-blush-700">ตอบรับเข้าร่วมงาน &amp; ส่งคำอวยพร</h3>
-                <p class="text-xs text-gray-500 mt-1">กรุณากรอกข้อมูลเพื่อช่วยเราจัดเตรียมที่นั่งและอาหารให้เหมาะสม</p>
+                <p class="text-[10px] tracking-[0.25em] text-rosegold uppercase">You're Invited</p>
+                <h3 class="font-serif text-2xl font-bold text-blush-700">RSVP</h3>
+                <p class="text-xs text-gray-500 mt-1">กรุณากรอกข้อมูลเพื่อยืนยันการเข้าร่วมงาน<br>และส่งคำอวยพรให้คู่บ่าวสาว</p>
             </div>
 
             <form id="rsvp-form" class="glass-card rounded-3xl p-6 space-y-4">
-                
-                <!-- ชื่อ-นามสกุล -->
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">ชื่อ - นามสกุล (หรือชื่อเล่น) <span class="text-blush-500">*</span></label>
-                    <input type="text" id="guest-name" required placeholder="ระบุชื่อของคุณ"
-                           class="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-sm focus:outline-none focus:border-blush-500 focus:ring-2 focus:ring-blush-200 transition">
+                    <input type="text" id="guest-name" required placeholder="กรอกชื่อของคุณ"
+                           class="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-blush-200 text-sm focus:outline-none focus:border-blush-500">
                 </div>
 
-                <!-- ฝั่งเจ้าบ่าว / เจ้าสาว -->
                 <div>
-                    <label class="block text-xs font-medium text-gray-700 mb-1">แขกของฝั่ง <span class="text-blush-500">*</span></label>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">ท่านเป็นแขกฝ่ายใด? <span class="text-blush-500">*</span></label>
                     <select id="guest-side" required
-                            class="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-sm focus:outline-none focus:border-blush-500 focus:ring-2 focus:ring-blush-200 transition">
+                            class="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-blush-200 text-sm focus:outline-none focus:border-blush-500">
                         <option value="ฝั่งเจ้าสาว (เพื่อน)">ฝั่งเจ้าสาว (คุณเพื่อน)</option>
                         <option value="ฝั่งเจ้าบ่าว (มิว)">ฝั่งเจ้าบ่าว (คุณมิว)</option>
                         <option value="เพื่อนทั้งสองฝ่าย">เพื่อนทั้งสองฝ่าย</option>
                     </select>
                 </div>
 
-                <!-- สถานะเข้าร่วมงาน -->
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">การเข้าร่วมงาน <span class="text-blush-500">*</span></label>
                     <select id="guest-status" onchange="toggleGuestCount()" required
-                            class="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-sm focus:outline-none focus:border-blush-500 focus:ring-2 focus:ring-blush-200 transition">
+                            class="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-blush-200 text-sm focus:outline-none focus:border-blush-500">
                         <option value="เข้าร่วมงาน">ยินดีเข้าร่วมงาน</option>
                         <option value="ไม่สามารถเข้าร่วมงานได้">ไม่สามารถเข้าร่วมงานได้ (ส่งคำอวยพร)</option>
                     </select>
                 </div>
 
-                <!-- จำนวนผู้เข้าร่วม (รวมตัวคุณเอง) -->
                 <div id="guest-count-wrapper">
-                    <label class="block text-xs font-medium text-gray-700 mb-1">จำนวนผู้เข้าร่วมงานทั้งหมด (รวมตัวคุณเอง)</label>
+                    <label class="block text-xs font-medium text-gray-700 mb-1">จำนวนผู้เข้าร่วมงาน (รวมตัวคุณเอง)</label>
                     <select id="guest-count"
-                            class="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-sm focus:outline-none focus:border-blush-500 focus:ring-2 focus:ring-blush-200 transition">
-                        <option value="1 ท่าน">1 ท่าน (มาคนเดียว)</option>
-                        <option value="2 ท่าน">2 ท่าน (มีผู้ติดตาม 1 ท่าน)</option>
-                        <option value="3 ท่าน">3 ท่าน (มีผู้ติดตาม 2 ท่าน)</option>
-                        <option value="4 ท่าน">4 ท่าน (มีผู้ติดตาม 3 ท่าน)</option>
+                            class="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-blush-200 text-sm focus:outline-none focus:border-blush-500">
+                        <option value="1 ท่าน">1 ท่าน</option>
+                        <option value="2 ท่าน">2 ท่าน</option>
+                        <option value="3 ท่าน">3 ท่าน</option>
+                        <option value="4 ท่าน">4 ท่าน</option>
                     </select>
                 </div>
 
-                <!-- เบอร์โทรศัพท์ -->
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">เบอร์โทรศัพท์ติดต่อ</label>
                     <input type="tel" id="guest-phone" placeholder="08X-XXX-XXXX"
-                           class="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-sm focus:outline-none focus:border-blush-500 focus:ring-2 focus:ring-blush-200 transition">
+                           class="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-blush-200 text-sm focus:outline-none focus:border-blush-500">
                 </div>
 
-                <!-- คำอวยพร -->
                 <div>
                     <label class="block text-xs font-medium text-gray-700 mb-1">คำอวยพรถึงบ่าวสาว</label>
-                    <textarea id="guest-message" rows="3" placeholder="เขียนคำอวยพรน่ารักๆ ให้เพื่อน & มิว..."
-                              class="w-full px-4 py-2.5 rounded-xl bg-white border border-blush-200 text-sm focus:outline-none focus:border-blush-500 focus:ring-2 focus:ring-blush-200 transition"></textarea>
+                    <textarea id="guest-message" rows="3" placeholder="เขียนคำอวยพรให้เพื่อน & มิว..."
+                              class="w-full px-4 py-2.5 rounded-xl bg-white/90 border border-blush-200 text-sm focus:outline-none focus:border-blush-500"></textarea>
                 </div>
 
-                <!-- Submit Button -->
                 <button type="submit" id="submit-btn"
-                        class="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-blush-500 to-rosegold text-white font-medium text-sm shadow-lg shadow-blush-300/50 hover:opacity-95 active:scale-[0.99] transition-all flex items-center justify-center gap-2 cursor-pointer">
+                        class="w-full py-3 px-6 rounded-full bg-gradient-to-r from-blush-500 to-rosegold text-white font-medium text-sm shadow-lg shadow-blush-300/50 hover:opacity-95 transition-all flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-paper-plane"></i>
-                    <span>ส่งข้อมูลตอบรับ</span>
+                    <span>ยืนยันการตอบรับ</span>
                 </button>
             </form>
 
-            <!-- Success Message Box (Hidden by default) -->
+            <!-- Success Box -->
             <div id="rsvp-success" class="hidden glass-card rounded-3xl p-8 text-center space-y-3">
-                <div class="w-14 h-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto text-2xl">
+                <div class="w-12 h-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto text-xl">
                     <i class="fa-solid fa-check"></i>
                 </div>
-                <h4 class="text-lg font-semibold text-blush-700">บันทึกข้อมูลเรียบร้อยแล้ว!</h4>
-                <p class="text-sm text-gray-600">ขอบคุณที่ร่วมเป็นส่วนหนึ่งในวันสำคัญของ<br><strong>เพื่อน &amp; มิว</strong> นะครับ</p>
-                <button onclick="resetForm()" class="mt-2 text-xs text-blush-600 underline cursor-pointer">ส่งข้อมูลเพิ่มเติม</button>
+                <h4 class="text-base font-semibold text-blush-700">บันทึกข้อมูลเรียบร้อยแล้ว!</h4>
+                <p class="text-xs text-gray-600">ขอบคุณที่ร่วมเป็นส่วนหนึ่งในวันสำคัญของ<br><strong>เพื่อน &amp; มิว</strong> นะครับ</p>
+                <button onclick="resetForm()" class="text-xs text-blush-600 underline cursor-pointer">ส่งข้อมูลเพิ่มเติม</button>
             </div>
         </section>
 
-        <!-- 8. FOOTER -->
-        <footer class="py-8 px-6 bg-white text-center border-t border-blush-100">
-            <p class="font-serif italic text-2xl text-blush-600">Puen &amp; Mew</p>
-            <p class="text-xs text-gray-400 mt-1">19 March 2027 • Rak Nam Cafe, Sam Phran</p>
-            <p class="text-[11px] text-gray-300 mt-4">With Love &amp; Gratitude</p>
+        <!-- Footer -->
+        <footer class="py-6 px-6 text-center border-t border-blush-200/50 bg-white/50">
+            <p class="font-script text-3xl text-blush-600">Puen &amp; Mew</p>
+            <p class="text-[11px] text-gray-400 mt-1">19 March 2027 • Rak Nam Cafe</p>
         </footer>
 
     </main>
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        // URL Google Apps Script ของคุณ
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx63b0Kj5u7s30Z2QMbAS9o-n4N944AygADB2C6vrHHLUzElGkja1hCvFuusadXXxpd/exec";
 
-        // 1. Open Invitation & Play Music
+        // 1. เปิดม่านบานคู่ (Curtain Gate) + เล่นเพลง + โปรยกลีบดอกไม้
         const bgMusic = document.getElementById('bg-music');
         const musicIcon = document.getElementById('music-icon');
         let isPlaying = false;
 
-        function openInvitation() {
-            document.getElementById('envelope-cover').classList.add('opened');
+        function openCurtain() {
+            document.getElementById('curtain-overlay').classList.add('opened');
             bgMusic.volume = 0.4;
             bgMusic.play().then(() => {
                 isPlaying = true;
-                musicIcon.className = "fa-solid fa-music text-lg animate-bounce";
-            }).catch(() => {
-                // กรณีเบราว์เซอร์บล็อก Autoplay
-                isPlaying = false;
-            });
+                musicIcon.className = "fa-solid fa-music text-sm animate-bounce";
+            }).catch(() => { isPlaying = false; });
             createPetals();
+        }
+
+        // 2. เปิด-ปิดฝาซองจดหมาย 3 มิติ (3D Envelope Flap)
+        function toggleEnvelope() {
+            const env = document.getElementById('wedding-envelope');
+            const hint = document.getElementById('envelope-hint');
+            env.classList.toggle('open');
+            if (env.classList.contains('open')) {
+                hint.innerHTML = '<i class="fa-solid fa-heart text-blush-500 mr-1"></i> แตะที่ซองอีกครั้งเพื่อพับเก็บ';
+                hint.classList.remove('animate-bounce');
+            } else {
+                hint.innerHTML = '<i class="fa-solid fa-hand-pointer mr-1"></i> แตะที่ซองเพื่อเปิดดูรูปบ่าวสาว';
+                hint.classList.add('animate-bounce');
+            }
         }
 
         function toggleMusic() {
             if (isPlaying) {
                 bgMusic.pause();
-                musicIcon.className = "fa-solid fa-volume-xmark text-lg";
+                musicIcon.className = "fa-solid fa-volume-xmark text-sm";
             } else {
                 bgMusic.play();
-                musicIcon.className = "fa-solid fa-music text-lg animate-bounce";
+                musicIcon.className = "fa-solid fa-music text-sm animate-bounce";
             }
             isPlaying = !isPlaying;
         }
 
-        // 2. Falling Pink Petals Effect
+        // 3. กลีบดอกไม้ชมพูโปรยปราย
         function createPetals() {
             const container = document.getElementById('petals-container');
-            const petalCount = 18;
-            for (let i = 0; i < petalCount; i++) {
+            for (let i = 0; i < 16; i++) {
                 const petal = document.createElement('div');
                 petal.className = 'petal text-blush-300';
                 petal.innerHTML = '<i class="fa-solid fa-spa"></i>';
                 petal.style.left = Math.random() * 100 + 'vw';
-                petal.style.fontSize = (Math.random() * 10 + 10) + 'px';
+                petal.style.fontSize = (Math.random() * 9 + 9) + 'px';
                 petal.style.animationDuration = (Math.random() * 6 + 7) + 's';
-                petal.style.animationDelay = (Math.random() * 5) + 's';
+                petal.style.animationDelay = (Math.random() * 4) + 's';
                 container.appendChild(petal);
             }
         }
 
-        // 3. Countdown Timer (19 มีนาคม 2570 = 2027-03-19 07:09:00)
+        // 4. นับถอยหลังสู่วันที่ 19 มีนาคม 2570
         const weddingDate = new Date("2027-03-19T07:09:00+07:00").getTime();
-
         function updateCountdown() {
             const now = new Date().getTime();
             const distance = weddingDate - now;
-
-            if (distance < 0) {
-                document.getElementById("days").innerText = "00";
-                document.getElementById("hours").innerText = "00";
-                document.getElementById("minutes").innerText = "00";
-                document.getElementById("seconds").innerText = "00";
-                return;
-            }
-
-            const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-            document.getElementById("days").innerText = String(days).padStart(2, '0');
-            document.getElementById("hours").innerText = String(hours).padStart(2, '0');
-            document.getElementById("minutes").innerText = String(minutes).padStart(2, '0');
-            document.getElementById("seconds").innerText = String(seconds).padStart(2, '0');
+            if (distance < 0) return;
+            document.getElementById("days").innerText = String(Math.floor(distance / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById("hours").innerText = String(Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById("minutes").innerText = String(Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById("seconds").innerText = String(Math.floor((distance % (1000 * 60)) / 1000)).padStart(2, '0');
         }
         setInterval(updateCountdown, 1000);
         updateCountdown();
 
-        // 4. Toggle Guest Count Field
+        // 5. ฟอร์ม RSVP ส่งเข้า Google Sheets
         function toggleGuestCount() {
             const status = document.getElementById('guest-status').value;
-            const wrapper = document.getElementById('guest-count-wrapper');
-            if (status === "ไม่สามารถเข้าร่วมงานได้") {
-                wrapper.classList.add('hidden');
-            } else {
-                wrapper.classList.remove('hidden');
-            }
+            document.getElementById('guest-count-wrapper').classList.toggle('hidden', status === "ไม่สามารถเข้าร่วมงานได้");
         }
 
-        // 5. Submit RSVP Form to Google Sheets
         document.getElementById('rsvp-form').addEventListener('submit', function(e) {
             e.preventDefault();
-
             const submitBtn = document.getElementById('submit-btn');
-            const originalBtnHTML = submitBtn.innerHTML;
+            const originalHTML = submitBtn.innerHTML;
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>กำลังบันทึกข้อมูล...</span>';
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> <span>กำลังบันทึก...</span>';
 
             const statusVal = document.getElementById('guest-status').value;
             const payload = {
@@ -568,23 +700,18 @@
 
             fetch(SCRIPT_URL, {
                 method: 'POST',
-                mode: 'no-cors', // ป้องกันปัญหา CORS ของ Google Apps Script
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             })
             .then(() => {
                 document.getElementById('rsvp-form').classList.add('hidden');
                 document.getElementById('rsvp-success').classList.remove('hidden');
             })
-            .catch(err => {
-                alert("เกิดข้อผิดพลาดในการส่งข้อมูล กรุณาลองใหม่อีกครั้งครับ");
-                console.error(err);
-            })
+            .catch(() => alert("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"))
             .finally(() => {
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = originalBtnHTML;
+                submitBtn.innerHTML = originalHTML;
             });
         });
 
